@@ -1,0 +1,95 @@
+name: Master Baseline Tests
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:  # Allow manual trigger to regenerate baseline
+
+jobs:
+  generate-baseline:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y unzip
+    
+    - name: Cache Python dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install Python dependencies
+      run: |
+        pip install -r requirements.txt
+    
+    - name: Setup judge environment
+      run: |
+        bash setup_judge.sh
+    
+    - name: Build unit tests
+      run: |
+        ./haribote_graph_compiler.py e --ignore=loss
+        ./haribote_graph_compiler.py build_unit_tests /tmp/train_step --mntest
+    
+    - name: Run tests and save results
+      run: |
+        # Run tests and capture output
+        ./haribote_graph_compiler.py test -f unit_tests/train_step/* > test_results.txt 2>&1 || true
+        
+        # Count PASS and FAIL
+        PASS_COUNT=$(grep -c "PASS" test_results.txt || echo "0")
+        FAIL_COUNT=$(grep -c "FAIL" test_results.txt || echo "0")
+        
+        # Save summary
+        echo "{" > test_summary.json
+        echo "  \"pass_count\": $PASS_COUNT," >> test_summary.json
+        echo "  \"fail_count\": $FAIL_COUNT," >> test_summary.json
+        echo "  \"commit\": \"${{ github.sha }}\"," >> test_summary.json
+        echo "  \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"" >> test_summary.json
+        echo "}" >> test_summary.json
+        
+        echo "Master Branch Test Results:"
+        echo "  PASS: $PASS_COUNT"
+        echo "  FAIL: $FAIL_COUNT"
+        echo "  Commit: ${{ github.sha }}"
+    
+    - name: Upload test results as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: master-test-results-${{ github.sha }}
+        path: |
+          test_results.txt
+          test_summary.json
+        retention-days: 30
+    
+    - name: Cache test results for specific commit
+      uses: actions/cache@v4
+      with:
+        path: |
+          test_results.txt
+          test_summary.json
+        key: master-test-results-${{ github.sha }}
+    
+    - name: Also cache as latest master results
+      uses: actions/cache@v4
+      with:
+        path: |
+          test_results.txt
+          test_summary.json
+        key: master-test-results-latest-${{ github.run_number }}
+        restore-keys: |
+          master-test-results-latest-

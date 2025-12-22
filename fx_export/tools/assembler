@@ -1,0 +1,22 @@
+#!/bin/sh
+
+# Docker wrapper for MN-Core assembler
+
+IMAGE_NAME=mncore-challenge
+JUDGE_DIR=$(dirname $(dirname $(dirname $0)))/judge
+
+if [ -z "$(docker image ls -q ${IMAGE_NAME})" ]; then
+  echo "Building docker image ${IMAGE_NAME}..." >&2
+  docker build --platform linux/amd64 -t ${IMAGE_NAME} ${JUDGE_DIR} >&2
+  echo "--------------------------------------" >&2
+fi
+
+# Run assembler in docker container
+# The assembler path inside the container
+docker run --platform linux/amd64 \
+  --mount type=bind,src=.,dst=/root \
+  --mount type=bind,src=/tmp,dst=/tmp \
+  --rm \
+  -i \
+  "${IMAGE_NAME}" \
+  /judge-py/mncore2_emuenv/assemble3 --instruction-mode flat

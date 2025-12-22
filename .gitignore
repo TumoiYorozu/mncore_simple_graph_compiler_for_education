@@ -1,0 +1,6 @@
+.vscode/
+.claude/
+__pycache__/
+data/
+unit_tests/
+judge/

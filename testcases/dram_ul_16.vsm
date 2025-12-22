@@ -1,0 +1,20 @@
+# ======= In(0): ((2:1, 4_PE:1, 2_W:1))@LM0 / Float =======
+d set $lm0p0 1 3E8000003FE00000 # values=[0.25, 1.75] / Float @[0],[1]
+d set $lm0p1 1 4010000040500000 # values=[2.25, 3.25] / Float @[2],[3]
+d set $lm0p2 1 4088000040B80000 # values=[4.25, 5.75] / Float @[4],[5]
+d set $lm0p3 1 40C8000040E80000 # values=[6.25, 7.25] / Float @[6],[7]
+d set $lm2p0 1 41040000411C0000 # values=[8.25, 9.75] / Float @[8],[9]
+d set $lm2p1 1 4124000041340000 # values=[10.25, 11.25] / Float @[10],[11]
+d set $lm2p2 1 4144000041540000 # values=[12.25, 13.25] / Float @[12],[13]
+d set $lm2p3 1 416C000041740000 # values=[14.75, 15.25] / Float @[14],[15]
+
+# ======= YOUR VSM WILL BE INSERTED HERE =======
+# ======= Out(0): ((8:1, 2_W:1))@DRAM / Float =======
+d getd $d0n0 1 # expect=[0.25, 1.75] / Float @[0],[1]
+d getd $d1n0 1 # expect=[2.25, 3.25] / Float @[2],[3]
+d getd $d2n0 1 # expect=[4.25, 5.75] / Float @[4],[5]
+d getd $d3n0 1 # expect=[6.25, 7.25] / Float @[6],[7]
+d getd $d4n0 1 # expect=[8.25, 9.75] / Float @[8],[9]
+d getd $d5n0 1 # expect=[10.25, 11.25] / Float @[10],[11]
+d getd $d6n0 1 # expect=[12.25, 13.25] / Float @[12],[13]
+d getd $d7n0 1 # expect=[14.75, 15.25] / Float @[14],[15]

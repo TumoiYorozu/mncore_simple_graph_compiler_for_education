@@ -1,0 +1,21 @@
+from typing import List
+from .. import BaseOperator
+
+def generate_vsm(operator: BaseOperator) -> List[str]:
+    assert operator.layout_in() == "((8:1, 2_W:1))", operator.layout_in()
+    assert operator.layout_out() == "((2:1, 4_PE:1, 2_W:1))", operator.layout_out()
+    
+    assert operator.loc_prefix_out() == "m" # LM0 に出力を仮定し、実装を軽減
+    
+    x = operator.addr_in()      # "$d0" の "0" の部分
+    y = operator.addr_out()     # "$lm0v" の "0" の部分
+
+    # test unit_tests/train_step/DL_16_*
+    # 問題名：「DL 16」
+
+    lines = []
+
+    lines.append(f"mvp/n64 $d{x+0}@0 $p0@0")
+    raise NotImplementedError("Please implement the VSM code!!")
+
+    return lines

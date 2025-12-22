@@ -1,0 +1,378 @@
+name: Unit Test CI
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write  # Allow PR comments
+
+jobs:
+  test-comparison:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout PR branch
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch all history for all branches
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y unzip
+    
+    - name: Cache Python dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install Python dependencies
+      run: |
+        pip install -r requirements.txt
+    
+    - name: Setup judge environment
+      run: |
+        bash setup_judge.sh
+    
+    - name: Generate cache key for unit tests
+      id: cache-key
+      run: |
+        # Generate a hash of relevant source files for cache key
+        HASH=$(find fx_export -type f -name "*.py" -exec sha256sum {} \; | sha256sum | cut -d' ' -f1)
+        echo "source-hash=$HASH" >> $GITHUB_OUTPUT
+    
+    - name: Cache PR branch unit tests
+      id: cache-pr-tests
+      uses: actions/cache@v4
+      with:
+        path: unit_tests/
+        key: pr-unit-tests-${{ steps.cache-key.outputs.source-hash }}-${{ github.sha }}
+        restore-keys: |
+          pr-unit-tests-${{ steps.cache-key.outputs.source-hash }}-
+    
+    - name: Build unit tests for PR branch
+      if: steps.cache-pr-tests.outputs.cache-hit != 'true'
+      run: |
+        ./haribote_graph_compiler.py e --ignore=loss
+        ./haribote_graph_compiler.py build_unit_tests /tmp/train_step --mntest
+    
+    - name: Run tests on PR branch
+      id: pr_tests
+      run: |
+        # Run tests and capture output
+        ./haribote_graph_compiler.py test -f unit_tests/train_step/* > pr_test_results.txt 2>&1 || true
+        
+        # Count PASS and FAIL
+        PR_PASS=$(grep -c "PASS" pr_test_results.txt || echo "0")
+        PR_FAIL=$(grep -c "FAIL" pr_test_results.txt || echo "0")
+        
+        echo "PR Branch Results:"
+        echo "  PASS: $PR_PASS"
+        echo "  FAIL: $PR_FAIL"
+        
+        # Save results to environment
+        echo "PR_PASS=$PR_PASS" >> $GITHUB_ENV
+        echo "PR_FAIL=$PR_FAIL" >> $GITHUB_ENV
+        
+        # Display test output
+        cat pr_test_results.txt
+    
+    - name: Get master branch baseline
+      id: get_master_baseline
+      run: |
+        # Try to get the base commit's test results
+        BASE_SHA=${{ github.event.pull_request.base.sha }}
+        echo "Looking for master baseline at commit: $BASE_SHA"
+        
+        # Create directory for baseline
+        mkdir -p master_baseline
+        
+        # First try to download from artifacts
+        ARTIFACT_NAME="master-test-results-${BASE_SHA}"
+        
+        echo "Searching for artifact: $ARTIFACT_NAME"
+        
+        # List available artifacts for debugging
+        curl -s \
+          -H "Authorization: token ${{ github.token }}" \
+          -H "Accept: application/vnd.github.v3+json" \
+          "https://api.github.com/repos/${{ github.repository }}/actions/artifacts" \
+          | jq '.artifacts[] | {name: .name, created_at: .created_at}' | head -20
+        
+        # Use GitHub API to check if specific artifact exists
+        ARTIFACT_DATA=$(curl -s \
+          -H "Authorization: token ${{ github.token }}" \
+          -H "Accept: application/vnd.github.v3+json" \
+          "https://api.github.com/repos/${{ github.repository }}/actions/artifacts?name=${ARTIFACT_NAME}")
+        
+        ARTIFACT_EXISTS=$(echo "$ARTIFACT_DATA" | jq '.total_count')
+        
+        if [ "$ARTIFACT_EXISTS" -gt "0" ]; then
+          echo "Found artifact for base commit"
+          ARTIFACT_ID=$(echo "$ARTIFACT_DATA" | jq -r '.artifacts[0].id')
+          ARTIFACT_URL="https://api.github.com/repos/${{ github.repository }}/actions/artifacts/${ARTIFACT_ID}/zip"
+          
+          # Download artifact
+          curl -L \
+            -H "Authorization: token ${{ github.token }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -o artifact.zip \
+            "$ARTIFACT_URL"
+          
+          # Extract artifact
+          unzip -o artifact.zip -d master_baseline/ || true
+          rm -f artifact.zip
+        fi
+        
+        # Check if file exists and set output
+        if [ -f "master_baseline/test_summary.json" ]; then
+          echo "has-baseline=true" >> $GITHUB_OUTPUT
+          echo "Found baseline in artifact"
+          cat master_baseline/test_summary.json
+        else
+          echo "has-baseline=false" >> $GITHUB_OUTPUT
+          echo "Artifact not found or empty, will try cache..."
+        fi
+    
+    - name: Try to restore master results from cache (specific commit)
+      if: steps.get_master_baseline.outputs.has-baseline != 'true'
+      id: cache-specific
+      uses: actions/cache@v4
+      with:
+        path: master_baseline/
+        key: never-match-this-key-${{ github.run_id }}
+        restore-keys: |
+          master-test-results-${{ github.event.pull_request.base.sha }}
+    
+    - name: Try to restore latest master results from cache
+      if: steps.get_master_baseline.outputs.has-baseline != 'true' && steps.cache-specific.outputs.cache-hit != 'true'
+      uses: actions/cache@v4
+      with:
+        path: master_baseline/
+        key: never-match-this-key-latest-${{ github.run_id }}
+        restore-keys: |
+          master-test-results-latest-
+    
+    - name: Check if baseline exists after cache
+      id: check_baseline
+      run: |
+        # Check both possible locations
+        if [ -f "master_baseline/test_summary.json" ]; then
+          echo "has-baseline=true" >> $GITHUB_OUTPUT
+          echo "Found baseline in cache (master_baseline/)"
+          cat master_baseline/test_summary.json
+        elif [ -f "test_summary.json" ]; then
+          # Cache might have restored to root, copy to expected location
+          mkdir -p master_baseline
+          cp test_summary.json master_baseline/
+          cp test_results.txt master_baseline/ 2>/dev/null || true
+          echo "has-baseline=true" >> $GITHUB_OUTPUT
+          echo "Found baseline in cache (root), copied to master_baseline/"
+          cat master_baseline/test_summary.json
+        else
+          echo "has-baseline=false" >> $GITHUB_OUTPUT
+          echo "No baseline found in cache"
+          ls -la . || true
+          ls -la master_baseline/ 2>/dev/null || true
+        fi
+    
+    - name: Fallback - Generate master baseline if not cached
+      if: steps.check_baseline.outputs.has-baseline != 'true'
+      run: |
+        echo "No cached results found, generating master baseline..."
+        
+        # Create directory
+        mkdir -p master_baseline
+        
+        # Checkout master branch
+        git checkout master
+        
+        # Clean any existing unit tests
+        rm -rf unit_tests/
+        
+        # Build and run tests
+        ./haribote_graph_compiler.py e --ignore=loss
+        ./haribote_graph_compiler.py build_unit_tests /tmp/train_step --mntest
+        
+        # Run tests and save output
+        ./haribote_graph_compiler.py test -f unit_tests/train_step/* > master_test_output.txt 2>&1 || true
+        
+        # Count results
+        MASTER_PASS=$(grep -c "PASS" master_test_output.txt || echo "0")
+        MASTER_FAIL=$(grep -c "FAIL" master_test_output.txt || echo "0")
+        
+        echo "Generated master baseline:"
+        echo "  PASS: $MASTER_PASS"
+        echo "  FAIL: $MASTER_FAIL"
+        
+        # Move test output to baseline directory
+        mv master_test_output.txt master_baseline/test_results.txt
+        
+        # Create summary JSON
+        cat > master_baseline/test_summary.json <<EOF
+        {
+          "pass_count": $MASTER_PASS,
+          "fail_count": $MASTER_FAIL,
+          "commit": "${{ github.event.pull_request.base.sha }}",
+          "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+        }
+        EOF
+        
+        echo "Created test_summary.json:"
+        cat master_baseline/test_summary.json
+        
+        # Switch back to PR branch
+        git checkout -
+    
+    - name: Read master baseline results
+      run: |
+        echo "Checking for master baseline file..."
+        ls -la master_baseline/ || echo "master_baseline directory not found"
+        
+        if [ -f "master_baseline/test_summary.json" ]; then
+          echo "Reading master baseline from test_summary.json:"
+          cat master_baseline/test_summary.json
+          
+          MASTER_PASS=$(jq -r '.pass_count' master_baseline/test_summary.json)
+          MASTER_FAIL=$(jq -r '.fail_count' master_baseline/test_summary.json)
+          MASTER_COMMIT=$(jq -r '.commit' master_baseline/test_summary.json)
+          
+          # Validate the values
+          if [ -z "$MASTER_PASS" ] || [ "$MASTER_PASS" = "null" ]; then
+            MASTER_PASS=0
+          fi
+          if [ -z "$MASTER_FAIL" ] || [ "$MASTER_FAIL" = "null" ]; then
+            MASTER_FAIL=0
+          fi
+          if [ -z "$MASTER_COMMIT" ] || [ "$MASTER_COMMIT" = "null" ]; then
+            MASTER_COMMIT="unknown"
+          fi
+        else
+          # If still no results, use zeros
+          echo "WARNING: No master baseline found, using defaults"
+          MASTER_PASS=0
+          MASTER_FAIL=0
+          MASTER_COMMIT="unknown"
+        fi
+        
+        echo "Master Branch Results (from commit: $MASTER_COMMIT):"
+        echo "  PASS: $MASTER_PASS"
+        echo "  FAIL: $MASTER_FAIL"
+        
+        # Save to environment
+        echo "MASTER_PASS=$MASTER_PASS" >> $GITHUB_ENV
+        echo "MASTER_FAIL=$MASTER_FAIL" >> $GITHUB_ENV
+        echo "MASTER_COMMIT=$MASTER_COMMIT" >> $GITHUB_ENV
+    
+    - name: Compare test results
+      id: compare
+      run: |
+        echo "========================================="
+        echo "Test Results Comparison"
+        echo "========================================="
+        echo "Master Branch: PASS=$MASTER_PASS, FAIL=$MASTER_FAIL (commit: $MASTER_COMMIT)"
+        echo "PR Branch:     PASS=$PR_PASS, FAIL=$PR_FAIL"
+        echo "========================================="
+        
+        # Calculate differences
+        PASS_DIFF=$((PR_PASS - MASTER_PASS))
+        FAIL_DIFF=$((PR_FAIL - MASTER_FAIL))
+        
+        echo "Changes:"
+        echo "  PASS: $PASS_DIFF (PR - Master)"
+        echo "  FAIL: $FAIL_DIFF (PR - Master)"
+        echo "========================================="
+        
+        # Check if PR improves tests (more PASS, no more FAIL)
+        if [ $PASS_DIFF -gt 0 ] && [ $FAIL_DIFF -le 0 ]; then
+          echo "✅ SUCCESS: PR improves test results!"
+          echo "  - Added $PASS_DIFF passing tests"
+          if [ $FAIL_DIFF -lt 0 ]; then
+            echo "  - Reduced $((-FAIL_DIFF)) failing tests"
+          fi
+          exit 0
+        else
+          echo "❌ FAILURE: PR does not improve test results"
+          if [ $PASS_DIFF -le 0 ]; then
+            echo "  - No new passing tests added"
+          fi
+          if [ $FAIL_DIFF -gt 0 ]; then
+            echo "  - Added $FAIL_DIFF failing tests"
+          fi
+          exit 1
+        fi
+    
+    - name: Post results as PR comment
+      if: always()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const pr_pass = parseInt(process.env.PR_PASS || '0');
+          const pr_fail = parseInt(process.env.PR_FAIL || '0');
+          const master_pass = parseInt(process.env.MASTER_PASS || '0');
+          const master_fail = parseInt(process.env.MASTER_FAIL || '0');
+          const master_commit = process.env.MASTER_COMMIT || 'unknown';
+          
+          const pass_diff = pr_pass - master_pass;
+          const fail_diff = pr_fail - master_fail;
+          
+          let status_emoji = pass_diff > 0 && fail_diff <= 0 ? '✅' : '❌';
+          let status_text = pass_diff > 0 && fail_diff <= 0 ? 'PASSED' : 'FAILED';
+          
+          const commit_display = master_commit === 'unknown' ? 'unknown' : master_commit.substring(0, 7);
+          
+          const body = `## Unit Test Results ${status_emoji}
+          
+          ### Comparison Summary
+          | Branch | PASS | FAIL | Total | Commit |
+          |--------|------|------|-------|--------|
+          | master | ${master_pass} | ${master_fail} | ${master_pass + master_fail} | ${commit_display} |
+          | PR | ${pr_pass} | ${pr_fail} | ${pr_pass + pr_fail} | - |
+          | **Diff** | **${pass_diff > 0 ? '+' : ''}${pass_diff}** | **${fail_diff > 0 ? '+' : ''}${fail_diff}** | **${(pass_diff + fail_diff) > 0 ? '+' : ''}${pass_diff + fail_diff}** | - |
+          
+          ### CI Status: ${status_text}
+          ${pass_diff > 0 && fail_diff <= 0 
+            ? `✅ PR improves test results! Added ${pass_diff} passing test(s)${fail_diff < 0 ? ` and fixed ${-fail_diff} failing test(s)` : ''}.`
+            : `❌ PR does not improve test results. ${pass_diff <= 0 ? 'No new passing tests added. ' : ''}${fail_diff > 0 ? `Added ${fail_diff} failing test(s).` : ''}`
+          }
+          
+          ${master_commit === 'unknown' ? '*Note: Master baseline was generated on-demand as no cached results were available.*' : ''}`;
+          
+          // Find existing comment
+          const { data: comments } = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+          });
+          
+          const botComment = comments.find(comment => 
+            comment.user.type === 'Bot' && comment.body.includes('## Unit Test Results')
+          );
+          
+          if (botComment) {
+            // Update existing comment
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: botComment.id,
+              body: body
+            });
+          } else {
+            // Create new comment
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: body
+            });
+          }
