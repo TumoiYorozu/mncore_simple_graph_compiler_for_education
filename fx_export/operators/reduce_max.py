@@ -32,7 +32,40 @@ class ReduceMaxOperator(BaseOperator):
                 # test unit_tests/train_step/ReduceMax_*
                 # 問題名：「MaxRow」
                 
-                raise NotImplementedError("Please implement the VSM code!!")
+                # 各PEで16回ループ
+                for block in range(16):
+                    # 現在のブロックの開始メモリアドレスを計算
+                    # block * 16で該当する行のベースアドレスを取得
+                    base_addr = block * 16
+                    
+                    # 最初の4要素（要素0-3）をALUに読み込み（初期値として設定）
+                    lines.append(f"fpassa $m{base_addr}v4 $nowrite")
+
+                    # 次の4要素（要素4-7）と前の結果を比較、最大値を$alufに保存
+                    lines.append(f"fmax $m{base_addr + 1}v4 $aluf $nowrite")
+                    
+                    # さらに次の4要素（要素8-11）と比較、最大値を$alufに保存
+                    lines.append(f"fmax $m{base_addr + 2}v4 $aluf $nowrite")
+                    
+                    # 最後の4要素（要素12-15）と比較、結果を$r0vに保存
+                    lines.append(f"fmax $m{base_addr + 3}v4 $aluf $r0v")
+                    
+                    # ベクトルレジスタの内容をスカラーレジスタに移動
+                    lines.append("msr $aluf $s0v")
+                    
+                    # ベクトル内の4要素同士で最大値を計算（水平方向の比較）
+                    lines.append("fmax $aluf $r0v $r0v")
+                    
+                    # 計算結果をスカラーレジスタ間で移動
+                    lines.append("msr $s0v $s0v")
+                    
+                    lines.append("fmax $aluf $r0v $r0v")
+                    lines.append("msr $s0v $s0v")
+
+                    # 出力は256要素のベクトル（各要素が対応する行の最大値）
+                    output_addr = block * 4
+                    lines.append(f"fmax $aluf $r0v $n{output_addr}v")
+
                 return lines
         raise NotImplementedError
 

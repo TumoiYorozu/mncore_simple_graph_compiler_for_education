@@ -43,9 +43,31 @@ class OneHotOperator(BaseOperator):
             
             # test unit_tests/train_step/OneHot_*
 
+            # サブPE IDの計算用定数を設定
             lines.append(f'imm i"0" $s0')
-            raise NotImplementedError("Please implement the VSM code!!")
-
+            lines.append(f'imm i"1" $s1')
+            lines.append(f'imm i"8" $s2')
+            lines.append(f'imm i"9" $s3')
+            lines.append(f'nop/2')
+            
+            # サブPE IDを計算
+            lines.append(f'iadd $subpeid $ls0v $nowrite')
+            lines.append(f'iadd $subpeid $aluf $ls0v')
+            
+            # 1.0の定数を設定
+            lines.append(f'imm f"1.0" $lr0v')
+            
+            # 出力領域を全てゼロで初期化
+            # m*4のアドレス (0, 4, 8, ..., 252) を全て初期化する必要がある
+            for m in range(64):  # 64個のメモリ位置
+                lines.append(f'zero $ln{m*4}v')
+            
+            # OneHot変換：各メモリ位置に対して条件付きで1.0を設定
+            for m in range(64):  # 64個のメモリ位置
+                lines.append(f'ixor $s0v $m{m} $omr1')
+                lines.append(f'fvpassa $lr0v $n{m*4}v/$imr1')
+            
+            lines.append(f'nop')
             return lines
         
         return lines

@@ -31,8 +31,18 @@ class ReduceSumOperator(BaseOperator):
                 
                 x = self.addr_out()        # "$d0" の "0" の部分
                 lines.append(f"fvpassa $m0v $nowrite")
-                raise NotImplementedError("Please implement the VSM code!!")
-
+                lines.append(f"fvadd $m4v $mauf $nowrite")
+                lines.append(f"fvadd $m8v $mauf $nowrite")
+                lines.append(f"fvadd $m12v $mauf $n0v")
+                lines.append(f"nop")
+                lines.append(f"nop")
+                lines.append(f"l1bmm@0 $ln0v $lb0")
+                lines.append(f"nop")
+                lines.append(f"nop")
+                lines.append(f"nop")
+                lines.append(f"l2bmrffadd $lb0 $lc0")
+                lines.append(f"nop")
+                lines.append(f"mvrffadd/n64 $lc0 $d{x}")
                 return lines
             
         if len(shape) == 2 and (axes == [-1]): # sum_row（行方向の和）

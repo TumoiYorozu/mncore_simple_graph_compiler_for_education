@@ -16,6 +16,35 @@ def generate_vsm(operator: BaseOperator) -> List[str]:
     
     lines = []
     lines.append(f"l1bmm@0 $lln0v $llb0")
-    raise NotImplementedError("Please implement the VSM code!!")
+    lines.append(f"l1bmm@0 $lln16v $llb32")
+    lines.append(f"l1bmm@0 $lln32v $llb64")
+    lines.append(f"l1bmm@0 $lln48v $llb96")
+    lines.append(f"l1bmm@0 $lln64v $llb128")
+    lines.append(f"l1bmm@0 $lln80v $llb160")
+    lines.append(f"l1bmm@0 $lln96v $llb192")
+    lines.append(f"l1bmm@0 $lln112v $llb224")
+    lines.append(f"l1bmm@0 $lln128v $llb256")
+    lines.append(f"l1bmm@0 $lln144v $llb288")
+    lines.append(f"l1bmm@0 $lln160v $llb320")
+    lines.append(f"l1bmm@0 $lln176v $llb352")
+    lines.append(f"l1bmm@0 $lln192v $llb384")
+    lines.append(f"l1bmm@0 $lln208v $llb416")
+    lines.append(f"l1bmm@0 $lln224v $llb448")
+    lines.append(f"l1bmm@0 $lln240v $llb480")
+
+    lines.append(f"l2bm@0 $lb0 $lc0")
+    lines.append(f"l2bm@0 $lb64 $lc64")
+    lines.append(f"l2bm@0 $lb128 $lc128")
+    lines.append(f"l2bm@0 $lb192 $lc192")
+    lines.append(f"l2bm@0 $lb256 $lc256")
+    lines.append(f"l2bm@0 $lb320 $lc320")
+    lines.append(f"l2bm@0 $lb384 $lc384")
+    lines.append(f"l2bm@0 $lb448 $lc448")
+
+    lines.append(f"nop")
+
+    lines.append(f"mvp/n512 $lc0@.0 $d{y+0}")
+
+
 
     return lines

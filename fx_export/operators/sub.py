@@ -28,7 +28,7 @@ class SubOperator(BaseOperator):
             
             for i in range(self.memory_len_in_div_ceil(8, 0)):  # PE あたりの長さを、8単語で割って切り上げ
                 lines.append(f"ipassa $l{in1_prefix}{in1_offset + i * 8}v $nowrite")
-                raise NotImplementedError("Please implement the VSM code!!")
+                lines.append(f"fvadd $lm{8 * i}v -$aluf $ln{8 * i}v")
 
         elif len(shape0) == 2 and len(shape1) == 1 and shape0[0] == shape1[0]:
             # ブロードキャスト（ベクトルを各行から減算） SubRow
@@ -51,7 +51,14 @@ class SubOperator(BaseOperator):
             assert self.addr_out(0)       ==  0  # Addr 0 に出力を仮定し、実装を軽減
                                                        # ↑、つまり、出力 0 が "$ln0v" だと仮定している
         
-            raise NotImplementedError("Please implement the VSM code!!")
+            # llなので、1サイクル4 wordにアクセス
+            for i in range(4):
+                lines.append(f"ipassa $llm{256 + i * 16}v $llr{i * 16}v")
+
+            for i in range(64):
+                offset = i * 4
+                lines.append(f"fvadd $m{offset}v -$r{i} $n{offset}v")
+                
             return lines
         else:
             raise NotImplementedError

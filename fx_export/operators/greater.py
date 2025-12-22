@@ -27,8 +27,7 @@ class GreaterOperator(BaseOperator):
         lines.append('imm f"1.0" $t')
         lines.append('nop')
         for i in range(self.memory_len_in_div_ceil(8, 0)):  # PE あたりの長さを、8単語で割って切り上げ
-            raise NotImplementedError("Please implement the VSM code!!")
-
+            lines.append(f"frelu $l{in_prefix}{in_offset + i * 8}v $lt $l{out_prefix}{out_offset + i * 8}v")
         return lines
     
     def testcase_hint(self) -> Optional[str]:

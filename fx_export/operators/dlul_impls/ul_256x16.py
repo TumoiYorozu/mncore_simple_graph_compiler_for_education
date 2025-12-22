@@ -16,5 +16,10 @@ def generate_vsm(operator: BaseOperator) -> List[str]:
     
     lines = []
     lines.append(f"l1bmm@0 $lln0v $llb0")
+    lines.append(f"nop/2")
+    lines.append(f"l2bmd $lb0 $lc0")
+    lines.append(f"nop")
+    lines.append(f"mvp/n256 $lc0@.0 $d{y+0}")
+    lines.append(f"mvp/n256 $lc0@.1 $d{y+256}")
 
     return lines

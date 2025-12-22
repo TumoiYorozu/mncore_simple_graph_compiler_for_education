@@ -35,7 +35,9 @@ class AddOperator(BaseOperator):
             
             # test unit_tests/train_step/Add_*
             lines.append(f"fvpassa $m16v $s0v")
-            raise NotImplementedError("Please implement the VSM code!!")
+            lines.append(f"nop")
+            for i in range(4):
+                lines.append(f"fvadd $m{4 * i}v $s0v $n{4 * i}v")
             
             return lines
         raise NotImplementedError(f"Add: shapes {shape0} + {shape1}")
