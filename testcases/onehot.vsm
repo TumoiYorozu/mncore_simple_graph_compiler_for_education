@@ -129,6 +129,7 @@ d set $lm60n3c0 1 000000030000000C # values=[3, 12] / Int @[252],[253]
 d set $lm62n3c0 1 0000000800000002 # values=[8, 2] / Int @[254],[255]
 
 # ======= YOUR VSM WILL BE INSERTED HERE =======
+# ======= Output =======
 # ======= Out(0): ((4_L2B:2, 64:2), (2:1, 4_PE:1, 2_W:1))@LM1 / Float =======
 d getd $ln0n0c0b0m0p0 1 # expect=[0.0, 0.0] / Float @[0,0],[0,1]
 d getd $ln0n0c0b0m0p1 1 # expect=[0.0, 0.0] / Float @[0,2],[0,3]

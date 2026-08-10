@@ -2049,6 +2049,7 @@ d set $lm14n3c1b7p2 1 C1AFE54643DB937B # values=[-21.986949920654297, 439.152191
 d set $lm14n3c1b7p3 1 C32C0FA9C20DFADC # values=[-172.06117248535156, -35.49497985839844] / Float @[255,14],[255,15]
 
 # ======= YOUR VSM WILL BE INSERTED HERE =======
+# ======= Output =======
 # ======= Out(0): ((8_L2B:1, 4:2, 8_L1B:1), (2:1, 4_PE:1, 2_W:1))@LM1 / Float =======
 d getd $ln0n0c0b0m0p0 1 # expect=[-0.0, 461.5314636230469] / Float @[0,0],[0,1]
 d getd $ln0n0c0b0m0p1 1 # expect=[237.56179809570312, 101.02629089355469] / Float @[0,2],[0,3]

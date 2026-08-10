@@ -4098,6 +4098,7 @@ d set $lm30n3c1b7p2 1 41A00000C30B0000 # values=[20.0, -139.0] / Float @[255,12]
 d set $lm30n3c1b7p3 1 43BF0000C2D80000 # values=[382.0, -108.0] / Float @[255,14],[255,15]
 
 # ======= YOUR VSM WILL BE INSERTED HERE =======
+# ======= Output =======
 # ======= Out(0): ((4_L2B:2, 4:8), (8:1, 2_W:1))@DRAM / Float =======
 d getd $d0n0 1 # expect=[-1246173.0, 2550833.0] / Float @[0,0],[0,1] atol=1e-05
 d getd $d1n0 1 # expect=[632651.0, 58800.0] / Float @[0,2],[0,3] atol=1e-05

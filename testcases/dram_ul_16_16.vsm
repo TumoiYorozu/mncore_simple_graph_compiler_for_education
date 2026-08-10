@@ -129,6 +129,7 @@ d set $lm62p2 1 437CC000437D4000 # values=[252.75, 253.25] / Float @[15,12],[15,
 d set $lm62p3 1 437E4000437F4000 # values=[254.25, 255.25] / Float @[15,14],[15,15]
 
 # ======= YOUR VSM WILL BE INSERTED HERE =======
+# ======= Output =======
 # ======= Out(0): ((4_L2B:2, 4:8), (8:1, 2_W:1))@DRAM / Float =======
 d getd $d0n0 1 # expect=[0.25, 1.75] / Float @[0,0],[0,1]
 d getd $d1n0 1 # expect=[2.25, 3.25] / Float @[0,2],[0,3]

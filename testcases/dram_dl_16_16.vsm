@@ -129,6 +129,7 @@ r 3 00000001E 001 437CC000437D4000 # values=[252.75, 253.25] / Float @[15,12],[1
 r 3 00000001F 001 437E4000437F4000 # values=[254.25, 255.25] / Float @[15,14],[15,15]
 
 # ======= YOUR VSM WILL BE INSERTED HERE =======
+# ======= Output =======
 # ======= Out(0): ((16:2), (2:1, 4_PE:1, 2_W:1))@LM0 / Float =======
 d getd $lm0n0c0b0m0p0 1 # expect=[0.25, 1.75] / Float @[0,0],[0,1]
 d getd $lm0n0c0b0m0p1 1 # expect=[2.25, 3.25] / Float @[0,2],[0,3]

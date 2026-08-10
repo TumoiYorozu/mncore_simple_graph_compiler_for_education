@@ -9,6 +9,7 @@ d set $lm2p2 1 4144000041540000 # values=[12.25, 13.25] / Float @[12],[13]
 d set $lm2p3 1 416C000041740000 # values=[14.75, 15.25] / Float @[14],[15]
 
 # ======= YOUR VSM WILL BE INSERTED HERE =======
+# ======= Output =======
 # ======= Out(0): ((8:1, 2_W:1))@DRAM / Float =======
 d getd $d0n0 1 # expect=[0.25, 1.75] / Float @[0],[1]
 d getd $d1n0 1 # expect=[2.25, 3.25] / Float @[2],[3]

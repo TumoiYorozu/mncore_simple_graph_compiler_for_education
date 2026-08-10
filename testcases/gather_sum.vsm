@@ -2178,5 +2178,6 @@ d set $lm316n3c0 1 0000000000000002 # values=[0, 2] / Int @[252],[253]
 d set $lm318n3c0 1 0000000700000007 # values=[7, 7] / Int @[254],[255]
 
 # ======= YOUR VSM WILL BE INSERTED HERE =======
+# ======= Output =======
 # ======= Out(0): ((1_W:1))@DRAM / Float =======
 d getd $d0n0 1 # expect=[1290.267578125, 1290.267578125] / Float @[0] atol=1e-05
