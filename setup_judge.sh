@@ -24,6 +24,21 @@ if unzip -o "$TEMP_FILE"; then
     # 一時ファイルを削除
     echo "一時ファイル $TEMP_FILE を削除中..."
     rm "$TEMP_FILE"
+
+    # mac 用パッチ: テスト実行時に生成される VSM は /tmp 以下に置かれるが、
+    # judge/judge の docker コンテナはカレントディレクトリしかマウントしないため、
+    # コンテナから /tmp も参照できるようにマウントを追加する
+    if ! grep -q 'src=/tmp,dst=/tmp' judge/judge; then
+        sed -i.bak 's|^docker run |docker run --mount type=bind,src=/tmp,dst=/tmp |' judge/judge
+        rm -f judge/judge.bak
+        chmod +x judge/judge
+    fi
+    if grep -q 'src=/tmp,dst=/tmp' judge/judge; then
+        echo "judge/judge に /tmp マウントパッチを適用しました"
+    else
+        echo "警告: judge/judge の docker run 行が見つからず、パッチを適用できませんでした（mac ではユニットテストが失敗する可能性があります）"
+    fi
+
     echo "セットアップ完了！"
 else
     echo "エラー: judge.zip の展開に失敗しました"
