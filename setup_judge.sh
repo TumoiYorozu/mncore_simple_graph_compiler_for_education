@@ -5,7 +5,7 @@ TEMP_FILE="/tmp/judge_$(date +%Y%m%d_%H%M%S)_$$.zip"
 
 # ファイルをダウンロード
 echo "$TEMP_FILE にダウンロード中..."
-curl -L -o "$TEMP_FILE" "https://seccamp-2025.mncore-challenge.preferred.tech/judge.zip"
+curl -L -o "$TEMP_FILE" "https://mncore-challenge.preferred.jp/judge-mnist.zip"
 
 # ダウンロードの成功確認
 if [ ! -f "$TEMP_FILE" ]; then
