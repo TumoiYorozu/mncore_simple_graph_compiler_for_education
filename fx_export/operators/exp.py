@@ -140,11 +140,9 @@ class ExpOperator(BaseOperator):
                              f"This is likely a bug in the ONNX graph generation.")
 
         if len(shape) == 2:
-            lines.append(f"    const Matrix<{shape[0]}, {shape[1]}> {
-                         out_var} = exp<{shape[0]}, {shape[1]}>({in_var});")
+            lines.append(f"const Matrix<{shape[0]}, {shape[1]}> {out_var} = exp<{shape[0]}, {shape[1]}>({in_var});")
         else:
-            raise NotImplementedError(f"Exp: Unsupported shape {
-                                      shape}. Only 2D matrices are supported.")
+            raise NotImplementedError(f"Exp: Unsupported shape {shape}. Only 2D matrices are supported.")
 
         self.variable_map[self.outputs[0]] = out_var
         return lines
