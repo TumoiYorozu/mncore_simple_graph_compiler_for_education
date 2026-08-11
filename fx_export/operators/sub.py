@@ -28,6 +28,7 @@ class SubOperator(BaseOperator):
             
             for i in range(self.memory_len_in_div_ceil(8, 0)): # PE あたりの長さを、8単語で割って切り上げ
                 lines.append(f"lpassa $l{in1_prefix}{in1_offset + i * 8}v $lr{ i * 8}v")
+            lines.append("nop")
             for i in range(self.memory_len_in_div_ceil(8, 0)):
                 lines.append(f"fvadd  $l{in0_prefix}{in0_offset + i * 8}v -$lr{i * 8}v $l{out_prefix}{out_offset + i * 8}v")
             return lines
