@@ -17,8 +17,9 @@ def generate_vsm(operator: BaseOperator) -> List[str]:
 
     lines.append(f"mvp/n64 $d{x+0}@0 $p0@0")
     lines.append(f"mvb/n64 $p0@0 $lc0")
-    lines.append(f"l2bmd $lc0 $lb0")
-    lines.append(f"l2bmd $lc256 $lb32")
+    # [16] は全グループで同じ値が必要なので分配(l2bmd)ではなく放送(l2bmb)する
+    lines.append(f"l2bmb $lc0 $lb0")
+    lines.append(f"nop")
     lines.append(f"l1bmm $lb0 $lm{y}v")
 
     return lines
