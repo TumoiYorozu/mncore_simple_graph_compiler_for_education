@@ -20,15 +20,18 @@ class SubOperator(BaseOperator):
         in0_offset = self.addr_in(0)        # $lm0v  の "0" の部分
         in1_offset = self.addr_in(1)        # $lm16v の "16" の部分
         out_offset = self.addr_out()              # $ln0v の "0" の部分
-        
+
         if shape0 == shape1:
             # 同じ形状の場合
             # test unit_tests/train_step/Sub_256x16_256x16_256x16_*
             # 問題名：「A - B」
             
-            for i in range(self.memory_len_in_div_ceil(8, 0)):  # PE あたりの長さを、8単語で割って切り上げ
-                lines.append(f"ipassa $l{in1_prefix}{in1_offset + i * 8}v $nowrite")
-                raise NotImplementedError("Please implement the VSM code!!")
+            for i in range(self.memory_len_in_div_ceil(8, 0)): # PE あたりの長さを、8単語で割って切り上げ
+                lines.append(f"lpassa $l{in1_prefix}{in1_offset + i * 8}v $lr{ i * 8}v")
+            for i in range(self.memory_len_in_div_ceil(8, 0)):
+                lines.append(f"fvadd  $l{in0_prefix}{in0_offset + i * 8}v -$lr{i * 8}v $l{out_prefix}{out_offset + i * 8}v")
+            return lines
+            return NotImplementedError("Please implement the VSM code!!")
 
         elif len(shape0) == 2 and len(shape1) == 1 and shape0[0] == shape1[0]:
             # ブロードキャスト（ベクトルを各行から減算） SubRow
