@@ -60,8 +60,9 @@ class AddOperator(BaseOperator):
         """C++コード生成"""
         lines = []
 
-        assert len(self.inputs) >= 2, f"Add node requires at least 2 inputs, got {
-            len(self.inputs)}"
+        assert len(self.inputs) >= 2, f"""
+        Add node requires at least 2 inputs, got {len(self.inputs)}
+        """
 
         in0 = self.get_mapped_var(self.inputs[0])
         in1 = self.get_mapped_var(self.inputs[1])
@@ -90,8 +91,9 @@ class AddOperator(BaseOperator):
         """Pythonコード生成"""
         lines = []
 
-        assert len(self.inputs) >= 2, f"Add node requires at least 2 inputs, got {
-            len(self.inputs)}"
+        assert len(self.inputs) >= 2, f"""
+        Add node requires at least 2 inputs, got {len(self.inputs)}
+        """
 
         in0 = self.get_mapped_var(self.inputs[0])
         in1 = self.get_mapped_var(self.inputs[1])
