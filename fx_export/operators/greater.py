@@ -31,6 +31,7 @@ class GreaterOperator(BaseOperator):
             value = "$aluf" if i == 0 else "$t"
             lines.append(f"frelu $l{in_prefix}{in_addr}v {value} $l{out_prefix}{out_addr}v")
 
+
         return lines
     
     def testcase_hint(self) -> Optional[str]:

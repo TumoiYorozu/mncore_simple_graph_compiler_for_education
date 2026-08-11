@@ -43,8 +43,40 @@ class OneHotOperator(BaseOperator):
             
             # test unit_tests/train_step/OneHot_*
 
-            lines.append(f'imm i"0" $s0')
-            raise NotImplementedError("Please implement the VSM code!!")
+            # --- ここから VSM (アセンブリ) の自動生成 ---
+            # [1] 定数の初期化とID計算
+            lines.append('imm i"0" $r5')
+            lines.append('imm f"1.0" $s4')
+            lines.append('imm i"0" $s0')
+            lines.append('imm i"1" $s1')
+            lines.append('imm i"8" $s2')
+            lines.append('imm i"9" $s3')
+            
+            lines.append('iadd $subpeid $r5 $r4')
+            lines.append('nop')
+            lines.append('nop')
+            lines.append('nop') # <-- 特殊レジスタの遅延は3サイクル必要なため nop を3つに
+            
+            lines.append('iadd $r4 $r4 $r4')
+            lines.append('nop')
+            lines.append('nop') # <-- 通常のALU遅延は2サイクルなので nop 2つ
+            
+            lines.append('iadd $s0v $r4 $s0v')
+            lines.append('nop')
+            lines.append('nop')
+
+            # [2] zeroマクロによる出力バッファの一括ゼロクリア (64要素×4ワード = 256ワード)
+            for i in range(0, 256, 16):
+                lines.append(f'zero $lln[{i},{i+4},{i+8},{i+12}]')
+
+            # [3] LM直接読み込みループ (要素 0 〜 63)
+            for i in range(64):
+                lines.append(f'ixor $s0v $m{i} $omr1')
+                lines.append('nop')
+                lines.append('nop')
+                lines.append('maskn 1')
+                lines.append(f'iadd $s4 $r5 $n{i * 4}v')
+            # --- VSM生成ここまで ---
 
             return lines
         
