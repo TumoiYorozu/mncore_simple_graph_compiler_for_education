@@ -15,6 +15,11 @@ def generate_vsm(operator: BaseOperator) -> List[str]:
     # 問題名：「UL 256_16」
     
     lines = []
-    lines.append(f"l1bmm@0 $lln0v $llb0")
+    lines.append('l1bmm@0 $lln0v $llb0')
+    lines.append('nop')
+    lines.append('nop')
+    lines.append('l2bmd $lb0 $lc0')
+    lines.append('mvp/n256 $lc0@.0 $d0')
+    lines.append('mvp/n256 $lc0@.1 $d256')
 
     return lines

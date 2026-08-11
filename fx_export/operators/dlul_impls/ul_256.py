@@ -16,6 +16,18 @@ def generate_vsm(operator: BaseOperator) -> List[str]:
     
     lines = []
     lines.append(f"dmwrite $ln0v $lx0")
-    raise NotImplementedError("Please implement the VSM code!!")
+
+    for i in range(8):
+        lines.append(f'dmwrite $ln{i*8}v $lx0')
+        lines.append('dmread $lx0 $lr0v')
+        lines.append('nop')
+        lines.append(f'l1bmm@0 $lr0v $lb{i*4}')
+
+    lines.append('nop')
+    lines.append('nop')
+    lines.append('nop')
+    lines.append('l2bm@0 $lb0 $lc0')
+    lines.append('nop')
+    lines.append(f'mvp/n64 $lc0@.0 $d{y}')
 
     return lines
