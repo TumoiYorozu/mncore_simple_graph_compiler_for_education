@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
 
-from typing import List, Dict, Any, Optional
-from . import BaseOperator
-from . import register_operator
+from . import BaseOperator, register_operator
 
 
 @register_operator("ReduceMax")
 class ReduceMaxOperator(BaseOperator):
     """ReduceMax演算オペレーター"""
 
-    def generate_vsm(self) -> List[str]:
+    def generate_vsm(self) -> list[str]:
         # グラフから形状を取得
         shape = self.in_shape()
         lines = []
@@ -31,15 +29,185 @@ class ReduceMaxOperator(BaseOperator):
 
                 # test unit_tests/train_step/ReduceMax_*
                 # 問題名：「MaxRow」
-                
-                raise NotImplementedError("Please implement the VSM code!!")
+
+                lines.append("fvpassa $m0v4 $nowrite")
+                lines.append("fmax $m1v4 $mauf $nowrite")
+                lines.append("fmax $m2v4 $aluf $nowrite")
+                lines.append("fmax $m3v4 $aluf $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $n0v")
+                lines.append("fvpassa $m16v4 $nowrite")
+                lines.append("fmax $m17v4 $mauf $nowrite")
+                lines.append("fmax $m18v4 $aluf $nowrite")
+                lines.append("fmax $m19v4 $aluf $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $n4v")
+                lines.append("fvpassa $m32v4 $nowrite")
+                lines.append("fmax $m33v4 $mauf $nowrite")
+                lines.append("fmax $m34v4 $aluf $nowrite")
+                lines.append("fmax $m35v4 $aluf $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $n8v")
+                lines.append("fvpassa $m48v4 $nowrite")
+                lines.append("fmax $m49v4 $mauf $nowrite")
+                lines.append("fmax $m50v4 $aluf $nowrite")
+                lines.append("fmax $m51v4 $aluf $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $n12v")
+                lines.append("fvpassa $m64v4 $nowrite")
+                lines.append("fmax $m65v4 $mauf $nowrite")
+                lines.append("fmax $m66v4 $aluf $nowrite")
+                lines.append("fmax $m67v4 $aluf $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $n16v")
+                lines.append("fvpassa $m80v4 $nowrite")
+                lines.append("fmax $m81v4 $mauf $nowrite")
+                lines.append("fmax $m82v4 $aluf $nowrite")
+                lines.append("fmax $m83v4 $aluf $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $n20v")
+                lines.append("fvpassa $m96v4 $nowrite")
+                lines.append("fmax $m97v4 $mauf $nowrite")
+                lines.append("fmax $m98v4 $aluf $nowrite")
+                lines.append("fmax $m99v4 $aluf $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $n24v")
+                lines.append("fvpassa $m112v4 $nowrite")
+                lines.append("fmax $m113v4 $mauf $nowrite")
+                lines.append("fmax $m114v4 $aluf $nowrite")
+                lines.append("fmax $m115v4 $aluf $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $n28v")
+                lines.append("fvpassa $m128v4 $nowrite")
+                lines.append("fmax $m129v4 $mauf $nowrite")
+                lines.append("fmax $m130v4 $aluf $nowrite")
+                lines.append("fmax $m131v4 $aluf $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $n32v")
+                lines.append("fvpassa $m144v4 $nowrite")
+                lines.append("fmax $m145v4 $mauf $nowrite")
+                lines.append("fmax $m146v4 $aluf $nowrite")
+                lines.append("fmax $m147v4 $aluf $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $n36v")
+                lines.append("fvpassa $m160v4 $nowrite")
+                lines.append("fmax $m161v4 $mauf $nowrite")
+                lines.append("fmax $m162v4 $aluf $nowrite")
+                lines.append("fmax $m163v4 $aluf $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $n40v")
+                lines.append("fvpassa $m176v4 $nowrite")
+                lines.append("fmax $m177v4 $mauf $nowrite")
+                lines.append("fmax $m178v4 $aluf $nowrite")
+                lines.append("fmax $m179v4 $aluf $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $n44v")
+                lines.append("fvpassa $m192v4 $nowrite")
+                lines.append("fmax $m193v4 $mauf $nowrite")
+                lines.append("fmax $m194v4 $aluf $nowrite")
+                lines.append("fmax $m195v4 $aluf $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $n48v")
+                lines.append("fvpassa $m208v4 $nowrite")
+                lines.append("fmax $m209v4 $mauf $nowrite")
+                lines.append("fmax $m210v4 $aluf $nowrite")
+                lines.append("fmax $m211v4 $aluf $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $n52v")
+                lines.append("fvpassa $m224v4 $nowrite")
+                lines.append("fmax $m225v4 $mauf $nowrite")
+                lines.append("fmax $m226v4 $aluf $nowrite")
+                lines.append("fmax $m227v4 $aluf $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $n56v")
+                lines.append("fvpassa $m240v4 $nowrite")
+                lines.append("fmax $m241v4 $mauf $nowrite")
+                lines.append("fmax $m242v4 $aluf $nowrite")
+                lines.append("fmax $m243v4 $aluf $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $n60v")
+                lines.append("fvpassa $m256v4 $nowrite")
+                lines.append("fmax $m257v4 $mauf $nowrite")
+                lines.append("fmax $m258v4 $aluf $nowrite")
+                lines.append("fmax $m259v4 $aluf $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $r0v")
+                lines.append("msr $aluf $nowrite")
+                lines.append("fmax $aluf $r0v $n64v")
+
                 return lines
         raise NotImplementedError
 
-    def testcase_hint(self) -> Optional[str]:
+    def testcase_hint(self) -> str | None:
         return "max_row.vsm"
 
-    def get_memory_layout_tag(self) -> Dict[str, List[str]]:
+    def get_memory_layout_tag(self) -> dict[str, list[str]]:
         shape0 = self.in_shape(0)
         oshape = self.out_shape(0)
         axes = list(self.get_attr("axes").ints)
@@ -47,13 +215,13 @@ class ReduceMaxOperator(BaseOperator):
             return {"inputs": ["PE"], "outputs": ["default"]}
         raise NotImplementedError(f"ReduceMax: shape={shape0}, axes={axes}")
 
-    def generate_cpp(self) -> List[str]:
+    def generate_cpp(self) -> list[str]:
         """C++コード生成"""
         lines = []
 
-        assert (
-            len(self.inputs) >= 1
-        ), f"ReduceMax node requires at least 1 input, got {len(self.inputs)}"
+        assert len(self.inputs) >= 1, (
+            f"ReduceMax node requires at least 1 input, got {len(self.inputs)}"
+        )
 
         in_var = self.get_mapped_var(self.inputs[0])
         out_var = self.get_output_var_name()
@@ -75,7 +243,7 @@ class ReduceMaxOperator(BaseOperator):
         self.variable_map[self.outputs[0]] = out_var
         return lines
 
-    def generate_python(self) -> List[str]:
+    def generate_python(self) -> list[str]:
         """Pythonコード生成"""
         lines = []
 
