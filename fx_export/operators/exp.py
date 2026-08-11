@@ -124,8 +124,9 @@ class ExpOperator(BaseOperator):
         """C++コード生成"""
         lines = []
 
-        assert len(self.inputs) >= 1, f"Exp node requires at least 1 input, got {
-            len(self.inputs)}"
+        assert len(self.inputs) >= 1, f"""
+        Exp node requires at least 1 input, got {len(self.inputs)}
+        """
 
         in_var = self.get_mapped_var(self.inputs[0])
         out_var = self.get_output_var_name()
