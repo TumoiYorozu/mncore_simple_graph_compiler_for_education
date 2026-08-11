@@ -3,29 +3,150 @@ from .. import BaseOperator
 
 
 def generate_vsm(operator: BaseOperator) -> List[str]:
-    operator.check_layout_in("((8_L2B:1, 32:1), (8_MAB:2, 8_L1B:1, 2_MAB:1, 4_PE:1, 2_W:1))", 0)
+    operator.check_layout_in(
+        "((8_L2B:1, 32:1), (8_MAB:2, 8_L1B:1, 2_MAB:1, 4_PE:1, 2_W:1))", 0
+    )
     operator.check_layout_in("((16:1), (8_MAB:2, 8_L1B:1, 2_MAB:1, 4_PE:1, 2_W:1))", 1)
     operator.check_layout_out("((4_L2B:2, 64:8), (8:1, 2_W:1))")
-    assert operator.loc_prefix_out() == "d" # DRAM 出力
+    assert operator.loc_prefix_out() == "d"  # DRAM 出力
 
+    assert operator.loc_prefix_in(0) == "m"  # LM0 に入力0を仮定し、実装を軽減
+    assert operator.loc_prefix_in(1) == "m"  # LM0 に入力1を仮定し、実装を軽減
 
-    assert operator.loc_prefix_in(0) == "m" # LM0 に入力0を仮定し、実装を軽減
-    assert operator.loc_prefix_in(1) == "m" # LM0 に入力1を仮定し、実装を軽減
-    
-    assert operator.addr_in(0) == 0   # 入力1 を addr0 に仮定し、実装を軽減
-                                            # ↑、つまり、入力 0 が "$lm0v" だと仮定している
+    assert operator.addr_in(0) == 0  # 入力1 を addr0 に仮定し、実装を軽減
+    # ↑、つまり、入力 0 が "$lm0v" だと仮定している
     assert operator.addr_in(1) == operator.memory_len_in(0)
-                                            # 入力2 を、入力 0 の直後と仮定し、実装を軽減
+    # 入力2 を、入力 0 の直後と仮定し、実装を軽減
 
+    c = operator.addr_out()  # "$d0" の "0" の部分
 
-    c = operator.addr_out()      # "$d0" の "0" の部分
-    
     # test unit_tests/train_step/Gemm_256x1024_16x1024_256x16_transB_a/
     # 問題名：「Mmul TB D 256_1024_16」
-    
+
     lines = []
 
-    lines.append("gbfn $lm0v $lr0v")
-    raise NotImplementedError("Please implement the VSM code!!")
+    lines.append(f"gbfn $lm64v $nowrite")
+    lines.append(f"gmwrite $aluf $ly0")
+    lines.append(f"gbfn $lm72v $nowrite")
+    lines.append(f"gmwrite $aluf $ly4")
+    lines.append(f"gbfn $lm0v $nowrite")
+    lines.append(f"gmmul $ly $aluf $ln0v4")
+    lines.append(f"gbfn $lm80v $nowrite")
+    lines.append(f"gmwrite $aluf $ly0")
+    lines.append(f"gbfn $lm88v $nowrite")
+    lines.append(f"gmwrite $aluf $ly4")
+    lines.append(f"gbfn $lm0v $nowrite")
+    lines.append(f"gmmul $ly $aluf $ln2v4")
+    lines.append(f"gbfn $lm64v $nowrite")
+    lines.append(f"gmwrite $aluf $ly0")
+    lines.append(f"gbfn $lm72v $nowrite")
+    lines.append(f"gmwrite $aluf $ly4")
+    lines.append(f"gbfn $lm8v $nowrite")
+    lines.append(f"gmmul $ly $aluf $ln16v4")
+    lines.append(f"gbfn $lm80v $nowrite")
+    lines.append(f"gmwrite $aluf $ly0")
+    lines.append(f"gbfn $lm88v $nowrite")
+    lines.append(f"gmwrite $aluf $ly4")
+    lines.append(f"gbfn $lm8v $nowrite")
+    lines.append(f"gmmul $ly $aluf $ln18v4")
+    lines.append(f"gbfn $lm64v $nowrite")
+    lines.append(f"gmwrite $aluf $ly0")
+    lines.append(f"gbfn $lm72v $nowrite")
+    lines.append(f"gmwrite $aluf $ly4")
+    lines.append(f"gbfn $lm16v $nowrite")
+    lines.append(f"gmmul $ly $aluf $ln32v4")
+    lines.append(f"gbfn $lm80v $nowrite")
+    lines.append(f"gmwrite $aluf $ly0")
+    lines.append(f"gbfn $lm88v $nowrite")
+    lines.append(f"gmwrite $aluf $ly4")
+    lines.append(f"gbfn $lm16v $nowrite")
+    lines.append(f"gmmul $ly $aluf $ln34v4")
+    lines.append(f"gbfn $lm64v $nowrite")
+    lines.append(f"gmwrite $aluf $ly0")
+    lines.append(f"gbfn $lm72v $nowrite")
+    lines.append(f"gmwrite $aluf $ly4")
+    lines.append(f"gbfn $lm24v $nowrite")
+    lines.append(f"gmmul $ly $aluf $ln48v4")
+    lines.append(f"gbfn $lm80v $nowrite")
+    lines.append(f"gmwrite $aluf $ly0")
+    lines.append(f"gbfn $lm88v $nowrite")
+    lines.append(f"gmwrite $aluf $ly4")
+    lines.append(f"gbfn $lm24v $nowrite")
+    lines.append(f"gmmul $ly $aluf $ln50v4")
+    lines.append(f"gbfn $lm64v $nowrite")
+    lines.append(f"gmwrite $aluf $ly0")
+    lines.append(f"gbfn $lm72v $nowrite")
+    lines.append(f"gmwrite $aluf $ly4")
+    lines.append(f"gbfn $lm32v $nowrite")
+    lines.append(f"gmmul $ly $aluf $ln64v4")
+    lines.append(f"gbfn $lm80v $nowrite")
+    lines.append(f"gmwrite $aluf $ly0")
+    lines.append(f"gbfn $lm88v $nowrite")
+    lines.append(f"gmwrite $aluf $ly4")
+    lines.append(f"gbfn $lm32v $nowrite")
+    lines.append(f"gmmul $ly $aluf $ln66v4")
+    lines.append(f"gbfn $lm64v $nowrite")
+    lines.append(f"gmwrite $aluf $ly0")
+    lines.append(f"gbfn $lm72v $nowrite")
+    lines.append(f"gmwrite $aluf $ly4")
+    lines.append(f"gbfn $lm40v $nowrite")
+    lines.append(f"gmmul $ly $aluf $ln80v4")
+    lines.append(f"gbfn $lm80v $nowrite")
+    lines.append(f"gmwrite $aluf $ly0")
+    lines.append(f"gbfn $lm88v $nowrite")
+    lines.append(f"gmwrite $aluf $ly4")
+    lines.append(f"gbfn $lm40v $nowrite")
+    lines.append(f"gmmul $ly $aluf $ln82v4")
+    lines.append(f"gbfn $lm64v $nowrite")
+    lines.append(f"gmwrite $aluf $ly0")
+    lines.append(f"gbfn $lm72v $nowrite")
+    lines.append(f"gmwrite $aluf $ly4")
+    lines.append(f"gbfn $lm48v $nowrite")
+    lines.append(f"gmmul $ly $aluf $ln96v4")
+    lines.append(f"gbfn $lm80v $nowrite")
+    lines.append(f"gmwrite $aluf $ly0")
+    lines.append(f"gbfn $lm88v $nowrite")
+    lines.append(f"gmwrite $aluf $ly4")
+    lines.append(f"gbfn $lm48v $nowrite")
+    lines.append(f"gmmul $ly $aluf $ln98v4")
+    lines.append(f"gbfn $lm64v $nowrite")
+    lines.append(f"gmwrite $aluf $ly0")
+    lines.append(f"gbfn $lm72v $nowrite")
+    lines.append(f"gmwrite $aluf $ly4")
+    lines.append(f"gbfn $lm56v $nowrite")
+    lines.append(f"gmmul $ly $aluf $ln112v4")
+    lines.append(f"gbfn $lm80v $nowrite")
+    lines.append(f"gmwrite $aluf $ly0")
+    lines.append(f"gbfn $lm88v $nowrite")
+    lines.append(f"gmwrite $aluf $ly4")
+    lines.append(f"gbfn $lm56v $nowrite")
+    lines.append(f"gmmul $ly $aluf $ln114v4")
+    lines.append(f"nop")
+    lines.append(f"nop")
+    lines.append(f"l1bmrffadd $ln0v $lb0")
+    lines.append(f"l1bmrffadd $ln8v $lb16")
+    lines.append(f"l1bmrffadd $ln16v $lb32")
+    lines.append(f"l1bmrffadd $ln24v $lb48")
+    lines.append(f"l1bmrffadd $ln32v $lb64")
+    lines.append(f"l1bmrffadd $ln40v $lb80")
+    lines.append(f"l1bmrffadd $ln48v $lb96")
+    lines.append(f"l1bmrffadd $ln56v $lb112")
+    lines.append(f"l1bmrffadd $ln64v $lb128")
+    lines.append(f"l1bmrffadd $ln72v $lb144")
+    lines.append(f"l1bmrffadd $ln80v $lb160")
+    lines.append(f"l1bmrffadd $ln88v $lb176")
+    lines.append(f"l1bmrffadd $ln96v $lb192")
+    lines.append(f"l1bmrffadd $ln104v $lb208")
+    lines.append(f"l1bmrffadd $ln112v $lb224")
+    lines.append(f"l1bmrffadd $ln120v $lb240")
+    lines.append(f"nop")
+    lines.append(f"nop")
+    lines.append(f"l2bmrffadd $lb0 $lc0")
+    lines.append(f"l2bmrffadd $lb64 $lc64")
+    lines.append(f"l2bmrffadd $lb128 $lc128")
+    lines.append(f"l2bmrffadd $lb192 $lc192")
+    lines.append(f"nop")
+    lines.append(f"mvp/n256 $lc0@.0 $d{c}")
+    lines.append(f"mvp/n256 $lc0@.1 $d{c + 256}")
 
     return lines
