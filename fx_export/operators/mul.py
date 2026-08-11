@@ -38,7 +38,8 @@ class MulOperator(BaseOperator):
             # 乗算メインパート
             for i in range(self.memory_len_in_div_ceil(8, 0)):
                 lines.append(f'imm f"{scalar_value}" $t')
-                raise NotImplementedError("Please implement the VSM code!!")
+                lines.append(f'nop')
+                lines.append(f"fvmul $l{in0_prefix}{in0_offset + i * 8}v $lt $l{out_prefix}{out_offset + i * 8}v")
             return lines
 
         in1_prefix = self.loc_prefix_in(1)
