@@ -129,7 +129,7 @@ def generate_cumulative_test_vsm(
     current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     judge_py_dir = os.path.join(current_dir, 'judge', 'judge-py')
     sys.path.append(judge_py_dir)
-    from vsm_here import VSM_HERE_COMMENT
+    from vsm_here import VSM_HERE_COMMENT, GET_OUTPUT_COMMENT
     
     # 1. 入力データの書き込み
     # 各入力に対応するDLノードを探す
@@ -251,6 +251,7 @@ def generate_cumulative_test_vsm(
     
     # 3. VSM挿入マーカー
     lines.append(VSM_HERE_COMMENT)
+    lines.append(GET_OUTPUT_COMMENT)
     
     # 4. 期待値（出力）の記述
     # 部分グラフの各出力について、対応するULノードまたは最後のノードからアドレスを取得
@@ -296,22 +297,23 @@ def generate_cumulative_test_vsm(
             # print(f"⚠ WARNING: Output {idx} ({output.name}) のアドレスが見つかりません。スキップします。")
     
     output_idx = 0
+    col_offset = 0  # 出力間でインデックスが衝突しないよう列方向にずらす
     for output in partial_graph.output:
         if output.name not in intermediate_values:
             continue
-        
+
         # アドレスを取得
         if output_idx not in output_addresses:
             output_idx += 1
             continue
         addr = output_addresses[output_idx]
-        
+
         data = intermediate_values[output.name]
         if not isinstance(data, np.ndarray):
             data = np.array(data)  # type: ignore[unreachable]
-        
+
         # 期待値を記述
-        write_expectations(lines, addr, data)
+        col_offset = write_expectations(lines, addr, data, col_offset)
         output_idx += 1
     
     return '\n'.join(lines) + '\n'
@@ -376,42 +378,48 @@ def write_to_single_dram(lines: List[str], dram_id: int, base_addr: int, hex_str
         lines.append(line)
         addr += 1
 
-def write_expectations(lines: List[str], base_addr: int, data: np.ndarray):
+def write_expectations(lines: List[str], base_addr: int, data: np.ndarray, col_offset: int = 0) -> int:
     """
     期待値の検証行を生成する。
-    
+
     Args:
         lines: 出力行のリスト
         base_addr: ベースアドレス（lw単位）
         data: 期待値データ
+        col_offset: インデックスのオフセット（複数出力の衝突回避用）
+
+    Returns:
+        次の出力が使うべきインデックスのオフセット
     """
     flat_data = data.flatten()
     total_elements = len(flat_data)
-    
+
     if total_elements <= 16:
         # DRAM 0のみから読み出し
-        write_expectations_from_dram(lines, 0, base_addr, flat_data)
+        write_expectations_from_dram(lines, 0, base_addr, flat_data, col_offset)
     else:
         # 4 DRAMから読み出し
         if total_elements % 4 != 0:
             raise ValueError(f"Element count {total_elements} is not divisible by 4")
-        
+
         elements_per_dram = total_elements // 4
         for dram_id in range(4):
             start_idx = dram_id * elements_per_dram
             end_idx = start_idx + elements_per_dram
             dram_data = flat_data[start_idx:end_idx]
-            write_expectations_from_dram(lines, dram_id, base_addr, dram_data)
+            write_expectations_from_dram(lines, dram_id, base_addr, dram_data, col_offset + start_idx)
+    return col_offset + total_elements
 
-def write_expectations_from_dram(lines: List[str], dram_id: int, base_addr: int, values: np.ndarray):
+def write_expectations_from_dram(lines: List[str], dram_id: int, base_addr: int, values: np.ndarray, col_offset: int = 0):
     """
     単一のDRAMから期待値を読み出す行を生成する。
-    
+
     Args:
         lines: 出力行のリスト
         dram_id: DRAM番号（0-3）
         base_addr: ベースアドレス（10進数）
         values: 期待値
+        col_offset: インデックスのオフセット（複数出力の衝突回避用）
     """
     # bool型の場合はfloat32にキャスト（0.0 または 1.0）
     if values.dtype == np.bool_ or values.dtype == bool:
@@ -424,7 +432,9 @@ def write_expectations_from_dram(lines: List[str], dram_id: int, base_addr: int,
     i = 0
     while i < len(values):
         if i + 1 < len(values):
-            expect_str = f"expect=[{values[i]:.6g}, {values[i+1]:.6g}] / Float @[{dram_id},{i}],[{dram_id},{i+1}]"
+            # インデックスはjudgeの比較用テンソルの位置ラベル。judge側のテンソル形状決定
+            # （辞書式max）と衝突しないよう、全出力を通した1行のグローバル通し番号にする
+            expect_str = f"expect=[{values[i]:.6g}, {values[i+1]:.6g}] / Float @[0,{col_offset + i}],[0,{col_offset + i + 1}]"
             i += 2
         else:
             raise NotImplementedError(f"Expectations for odd number of elements not implemented: {len(values)}")
