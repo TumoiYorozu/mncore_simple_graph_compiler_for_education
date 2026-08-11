@@ -30,8 +30,25 @@ class ReduceSumOperator(BaseOperator):
                 # 問題名：「SumCol」
                 
                 x = self.addr_out()        # "$d0" の "0" の部分
-                lines.append(f"fvpassa $m0v $nowrite")
-                raise NotImplementedError("Please implement the VSM code!!")
+
+                # 8_L2B, 8_L1B を無視すると ((4:2), (2:1, 4_PE:1, 2_W:1)) になり、
+                # PE 内に行方向の 4 要素が $m[0:4], $m[4:8], $m[8:12], $m[12:16] と並ぶ。
+                # まず PE 内で 4 要素を縮約し、残りは DRAM へ運ぶ過程で
+                # 8 L1B → 8 L2B と縮約して 256 要素分の和にする。
+                lines.append(f'''
+                    fvpassa $m0v $nowrite
+                    fvadd $m4v $mauf $nowrite
+                    fvadd $m8v $mauf $nowrite
+                    fvadd $m12v $mauf $n0v
+                    nop
+                    nop
+                    l1bmm@0 $ln0v $lb0
+                    nop
+                    nop
+                    nop
+                    l2bmrffadd $lb0 $lc0
+                    mvrffadd/n64 $lc0 $d{x}
+                ''')
 
                 return lines
             
