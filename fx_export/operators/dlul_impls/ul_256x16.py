@@ -19,7 +19,7 @@ def generate_vsm(operator: BaseOperator) -> List[str]:
     lines.append('nop')
     lines.append('nop')
     lines.append('l2bmd $lb0 $lc0')
-    lines.append('mvp/n256 $lc0@.0 $d0')
-    lines.append('mvp/n256 $lc0@.1 $d256')
+    lines.append(f'mvp/n256 $lc0@.0 $d{y+0}')
+    lines.append(f'mvp/n256 $lc0@.1 $d{y+256}')
 
     return lines
