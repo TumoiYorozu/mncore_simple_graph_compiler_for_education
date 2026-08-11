@@ -27,8 +27,9 @@ class GreaterOperator(BaseOperator):
         lines.append('imm f"1.0" $t')
         lines.append('nop')
         for i in range(self.memory_len_in_div_ceil(8, 0)):  # PE あたりの長さを、8単語で割って切り上げ
-            raise NotImplementedError("Please implement the VSM code!!")
-
+            in_addr  = in_offset  + i * 8
+            out_addr = out_offset + i * 8
+            lines.append(f"frelu $t $l{in_prefix}{in_addr}v $l{out_prefix}{out_addr}v")
         return lines
     
     def testcase_hint(self) -> Optional[str]:
@@ -83,6 +84,7 @@ class GreaterOperator(BaseOperator):
                 lines.append(f"    }}")
                 lines.append(f"    const Matrix<{shape1[0]}, {shape1[1]}> {out_var} = relu_grad<{shape1[0]}, {shape1[1]}>(ones, {in1_var});")
             else:
+                
                 raise NotImplementedError(f"Greater: shape {shape1}")
         else:
             # 要素ごとの比較

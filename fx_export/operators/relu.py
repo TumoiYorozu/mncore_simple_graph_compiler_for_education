@@ -22,8 +22,9 @@ class ReluOperator(BaseOperator):
         # test unit_tests/train_step/Relu_*
         lines = []
         for i in range(self.memory_len_in_div_ceil(8, 0)):  # PE あたりの長さを、8単語で割って切り上げ
-            raise NotImplementedError("Please implement the VSM code!!")
-            lines.append(f"frelu ...")
+            in_addr  = in_offset  + i * 8
+            out_addr = out_offset + i * 8
+            lines.append(f"frelu $l{in_prefix}{in_addr}v $l{in_prefix}{in_addr}v $l{out_prefix}{out_addr}v")
         return lines
 
     def testcase_hint(self) -> Optional[str]:
