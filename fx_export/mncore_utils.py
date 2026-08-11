@@ -6,6 +6,7 @@ import struct
 import onnx
 from typing import List, Tuple, Dict, Optional, Any, Union
 import re
+import shutil
 import subprocess
 import os
 import platform
@@ -689,10 +690,15 @@ def _get_gpfn3_loader_path() -> str:
     global _GPFN3_LOADER_PATH
     if _GPFN3_LOADER_PATH is None:
         local_loader = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "gpfn3-loader")
+        system_loader = shutil.which("gpfn3-loader")
         if os.path.exists(local_loader) and os.access(local_loader, os.X_OK):
             _GPFN3_LOADER_PATH = local_loader
+        elif system_loader is not None:
+            _GPFN3_LOADER_PATH = system_loader
         else:
-            raise FileNotFoundError(f"gpfn3-loader が見つからないか実行できません: {local_loader}")
+            raise FileNotFoundError(
+                f"gpfn3-loader が見つからないか実行できません: {local_loader} (PATH 上にもありません)"
+            )
     return _GPFN3_LOADER_PATH
 
 def run_mncore2_computation(

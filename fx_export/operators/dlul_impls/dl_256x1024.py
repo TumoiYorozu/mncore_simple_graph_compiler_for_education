@@ -16,6 +16,10 @@ def generate_vsm(operator: BaseOperator) -> List[str]:
     
     lines = []
     lines.append(f"mvp/n16384 $d{x+0} $lc0@.0")
-    raise NotImplementedError("Please implement the VSM code!!")
+    lines.append(f"mvp/n16384 $d{x+16384} $lc0@.1")
+    for i in range(64):
+        lines.append(f"l2bmd $lc{i*256} $lb{i*32}")
+    for i in range(8):
+        lines.append(f"l1bmd $lb{i*256} $lm{y+i*8}v")
 
     return lines

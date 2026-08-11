@@ -30,9 +30,22 @@ class DivOperator(BaseOperator):
 
             # test unit_tests/train_step/Div_*
             # 問題名：「DivRow vec」
-            
-            lines.append(f'imm f"2.0" $lt')
-            raise NotImplementedError("Please implement the VSM code!!")
+
+            lines.append('imm f"2.0" $lt')
+
+            for i in range(8):
+                idx = 256+i*8
+                lines.append(f'frsqrt $lm{idx}v $nowrite')
+                lines.append('fvmul  $aluf $aluf $lr0v')
+                lines.append(f'fvmul  $lm{idx}v $mauf $nowrite')
+                lines.append('fvadd  $lt -$mauf $nowrite')
+                lines.append('fvmul  $mauf $lr0v $lr0v')
+                lines.append(f'fvmul  $lm{idx}v $mauf $nowrite')
+                lines.append('fvadd  $lt -$mauf $nowrite')
+                lines.append('fvmul  $mauf $lr0v $lr0v')
+                lines.append('nop')
+                for j in range(8):
+                    lines.append(f'fvmul  $m{i*32+j*4}v $r{j} $n{i*32+j*4}v')
 
             return lines
         raise NotImplementedError(f"Div: shapes {shape0} / {shape1}")

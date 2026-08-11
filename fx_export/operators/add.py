@@ -35,10 +35,10 @@ class AddOperator(BaseOperator):
             # ↑、つまり、出力が "$ln0v" だと仮定している
 
             # test unit_tests/train_step/Add_*
-            lines.append(f"fvpassa $m16v $s0v")
-            # lines.append(f"fvpassa $m16v $s0v")
-            # raise NotImplementedError("Please implement the VSM code!!")
 
+            lines.append("ipassa $lm[16,18,16,18] $lr[0,2,4,6]")
+            lines.append("fvadd $lm[0,2,4,6] $aluf $ln[0,2,4,6]")
+            lines.append("fvadd $lm[8,10,12,14] $lr[0,2,4,6] $ln[8,10,12,14]")
             return lines
         raise NotImplementedError(f"Add: shapes {shape0} + {shape1}")
 
