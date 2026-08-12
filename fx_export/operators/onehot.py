@@ -77,6 +77,7 @@ class OneHotOperator(BaseOperator):
                 lines.append('maskn 1')
                 lines.append(f'iadd $s4 $r5 $n{i * 4}v')
             # --- VSM生成ここまで ---
+            lines.append('mask 0')
 
             return lines
         
